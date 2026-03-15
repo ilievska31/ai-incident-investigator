@@ -21,7 +21,7 @@ def analyze_logs(logs):
     """
     
     response = ollama.chat(
-        model="mistral",
+        model="llama3",
         messages=[{"role":"user", "content":prompt}]
     )
 

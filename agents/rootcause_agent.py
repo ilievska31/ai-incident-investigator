@@ -26,7 +26,7 @@ def analyze_root_cause(log_analysis, trace_analysis):
     """
 
     response = ollama.chat(
-        model="mistral",
+        model="llama3",
         messages=[{"role": "user", "content": prompt}]
     )
 

@@ -1,12 +1,14 @@
 import ollama
 
-def analyze_stacktrace(trace):
+def stacktrace_analyzer_node(state):
+
+    stacktrace = state["stacktrace"]
 
     prompt = f"""
-        You are analyzing stack traces extracted from logs.
+        Analyze the stack traces extracted.
 
-        STACK TRACE
-        {trace}
+        STACK TRACES
+        {stacktrace}
 
         Tasks:
 
@@ -23,7 +25,9 @@ def analyze_stacktrace(trace):
 
     response = ollama.chat(
         model="llama3",
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role":"user", "content": prompt}]
     )
 
-    return response["message"]["content"]
+    return {"stacktrace_analysis": response["message"]["content"]}
+
+    
