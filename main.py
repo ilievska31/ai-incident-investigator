@@ -53,6 +53,6 @@ graph.add_edge("rootcause_analyzer", END)
 app = graph.compile()
 
 logs = load_file("logs.txt")
-result = app.invoke({"logs" :logs})
+result = app.invoke({"logs":logs})
 
-print(result["report"])
+print(result["report"].model_dump_json(indent=2))

@@ -1,29 +1,45 @@
-import ollama
+
+from langchain.prompts import ChatPromptTemplate
+from langchain_ollama import ChatOllama
+from langchain.output_parsers import PydanticOutputParser
+from schemas.incident_schema import IncidentReport
 
 def rootcause_analyzer(state):
-    prompt = f"""
-        Based on the provided log, stacktrace and corelation analysis do an in-depth invedtigation.
+
+    prompt = ChatPromptTemplate.from_template(
+    """
+        Based on the provided log, stacktrace and corelation analysis do an in-depth investigation.
 
         LOG ANALYSIS
-        {state["log_analysis"]}
+        {log_analysis}
 
         STACKTRACE ANALYSIS
-        {state["stacktrace_analysis"]}
+        {stacktrace_analysis}
 
         CORRELATION ANALYSIS
-        {state["correlation_analysis"]}
+        {correlation_analysis}
 
-        Determine:
-        1. Summary of events
-        2. Root cause
-        3. What to fix
-        4. Debugging steps
-    """
+        Determine the root cause.
+        {format_instructions}
+    """)
 
-    response = ollama.chat(
-        model="llama3",
-        messages=[{"role":"user","content":prompt}]
+    parser = PydanticOutputParser(pydantic_object=IncidentReport)
+    format_instructions = parser.get_format_instructions()
+
+    messages = prompt.format_messages(
+        log_analysis=state["log_analysis"],
+        stacktrace_analysis=state["stacktrace_analysis"],
+        correlation_analysis=state["correlation_analysis"],
+        format_instructions=format_instructions
     )
 
-    return {"report": response["message"]["content"]}
+    model = ChatOllama(
+        model="llama3",
+        temperature=0,
+        format="json"
+    )
 
+    response = model.invoke(messages)
+    incident = parser.parse(response.content)
+
+    return {"report":incident}
