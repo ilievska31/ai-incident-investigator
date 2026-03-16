@@ -6,4 +6,5 @@ class IncidentState(TypedDict):
     stacktrace: str
     log_analysis: str
     stacktrace_analysis: str
+    correlation_analysis: str
     report: str

@@ -1,12 +1,16 @@
 import ollama
 
-def log_analyzer_node(state):
-    logs = state["important_logs"]
-
+def log_analyzer(state):
     prompt = f"""
         Analyze thes provided log events:
-        LOGS {logs}
-        Return: Key events, Detected errors, Observations
+        
+        LOGS 
+        {state["important_logs"]}
+        
+        Return: 
+        1. Key events 
+        2. Detected errors
+        3. Observations
     """
 
     response = ollama.chat(

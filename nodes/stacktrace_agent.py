@@ -1,14 +1,11 @@
 import ollama
 
-def stacktrace_analyzer_node(state):
-
-    stacktrace = state["stacktrace"]
-
+def stacktrace_analyzer(state):
     prompt = f"""
         Analyze the stack traces extracted.
 
         STACK TRACES
-        {stacktrace}
+        {state["stacktrace"]}
 
         Tasks:
 

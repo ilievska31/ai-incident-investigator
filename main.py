@@ -7,10 +7,11 @@ from rich import print
 from langgraph.graph import StateGraph, START, END
 from state import IncidentState
 
-from nodes.parser_node import parser_node
-from nodes.log_analyzer_node import log_analyzer_node
-from nodes.stacktrace_analyzer_node import stacktrace_analyzer_node
-from nodes.rootcause_analyzer_node import rootcause_analyzer_node
+from nodes.parsing_agent import parser
+from nodes.log_agent import log_analyzer
+from nodes.stacktrace_agent import stacktrace_analyzer
+from nodes.correlation_agent import correlation_analyzer
+from nodes.rootcause_agent import rootcause_analyzer
 
 def load_file(path):
     with open(path, "r") as f:
@@ -35,16 +36,18 @@ def load_file(path):
 
 graph = StateGraph(IncidentState)
 
-graph.add_node("parser", parser_node)
-graph.add_node("log_analyzer", log_analyzer_node)
-graph.add_node("stacktrace_analyzer", stacktrace_analyzer_node)
-graph.add_node("rootcause_analyzer", rootcause_analyzer_node)
+graph.add_node("parser", parser)
+graph.add_node("log_analyzer", log_analyzer)
+graph.add_node("stacktrace_analyzer", stacktrace_analyzer)
+graph.add_node("correlation_analyzer", correlation_analyzer)
+graph.add_node("rootcause_analyzer", rootcause_analyzer)
 
 graph.add_edge(START, "parser")
 graph.add_edge("parser", "log_analyzer")
 graph.add_edge("parser", "stacktrace_analyzer")
-graph.add_edge("log_analyzer", "rootcause_analyzer")
-graph.add_edge("stacktrace_analyzer", "rootcause_analyzer")
+graph.add_edge("log_analyzer", "correlation_analyzer")
+graph.add_edge("stacktrace_analyzer", "correlation_analyzer")
+graph.add_edge("correlation_analyzer", "rootcause_analyzer")
 graph.add_edge("rootcause_analyzer", END)
 
 app = graph.compile()
