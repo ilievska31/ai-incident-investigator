@@ -21,5 +21,5 @@ def correlation_analyzer(state):
     )
 
     return {
-        "correlation_analysis":response["message"]["content"]
+        "correlation_analysis": response["message"]["content"]
     }

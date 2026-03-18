@@ -4,6 +4,6 @@ def parser(state):
     parsed = parse_logs(state["logs"])
     
     return {
-        "important_logs": parsed["important_logs"],
+        "parsed_logs": parsed["parsed_logs"],
         "stacktrace": parsed["stacktrace_lines"]
     }

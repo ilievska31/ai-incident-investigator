@@ -12,6 +12,7 @@ from nodes.log_agent import log_analyzer
 from nodes.stacktrace_agent import stacktrace_analyzer
 from nodes.correlation_agent import correlation_analyzer
 from nodes.rootcause_agent import rootcause_analyzer
+from nodes.memory_agent import memory_retriever
 
 def load_file(path):
     with open(path, "r") as f:
@@ -23,7 +24,7 @@ def load_file(path):
 
 
 # print("Analyzing logs...")
-# log_analysis = analyze_logs(parsedLogs["important_logs"])
+# log_analysis = analyze_logs(parsedLogs["parsed_logs"])
 
 # print("Analyzing stacktrace")
 # stacktrace_analysis=analyze_stacktrace(parsedLogs["stacktrace_lines"])
@@ -40,6 +41,7 @@ graph.add_node("parser", parser)
 graph.add_node("log_analyzer", log_analyzer)
 graph.add_node("stacktrace_analyzer", stacktrace_analyzer)
 graph.add_node("correlation_analyzer", correlation_analyzer)
+graph.add_node("memory_retriever", memory_retriever)
 graph.add_node("rootcause_analyzer", rootcause_analyzer)
 
 graph.add_edge(START, "parser")
@@ -47,7 +49,8 @@ graph.add_edge("parser", "log_analyzer")
 graph.add_edge("parser", "stacktrace_analyzer")
 graph.add_edge("log_analyzer", "correlation_analyzer")
 graph.add_edge("stacktrace_analyzer", "correlation_analyzer")
-graph.add_edge("correlation_analyzer", "rootcause_analyzer")
+graph.add_edge("correlation_analyzer", "memory_retriever")
+graph.add_edge("memory_retriever", "rootcause_analyzer")
 graph.add_edge("rootcause_analyzer", END)
 
 app = graph.compile()

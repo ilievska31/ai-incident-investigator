@@ -5,7 +5,7 @@ def log_analyzer(state):
         Analyze thes provided log events:
         
         LOGS 
-        {state["important_logs"]}
+        {state["parsed_logs"]}
         
         Return: 
         1. Key events 
