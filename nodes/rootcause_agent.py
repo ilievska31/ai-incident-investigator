@@ -8,64 +8,70 @@ from memory.incident_store import store_incident
 import json
 from schemas.incident_schema import IncidentReport
 
-def safe_parse(response_text: str) -> IncidentReport:
-
-    raw = json.loads(response_text)
-
-    # unwrap if needed
-    if "properties" in raw:
-        raw = raw["properties"]
-
-    # 🔥 fill missing fields
-    raw.setdefault("summary", "")
-    raw.setdefault("root_cause", "")
-    raw.setdefault("evidence", [])
-    raw.setdefault("failure_chain", [])
-    raw.setdefault("debugging_steps", [])
-
-    return IncidentReport.model_validate(raw)
-
 def rootcause_analyzer(state):
 
     similar_incidents = "\n\n".join(state.get("similar_incidents", []))
 
     prompt = ChatPromptTemplate.from_template(
     """
-You are an expert incident investigator.
+        You are an expert incident investigator.
 
-Analyze the system failure using logs, stacktraces, and correlations.
+        Analyze the system failure using logs, stacktraces, and correlations.
 
-Also consider similar past incidents for pattern recognition.
+        Also consider similar past incidents for pattern recognition.
 
-====================
-LOG ANALYSIS
-{log_analysis}
+        ====================
+        LOG ANALYSIS
+        {log_analysis}
 
-STACKTRACE ANALYSIS
-{stacktrace_analysis}
+        STACKTRACE ANALYSIS
+        {stacktrace_analysis}
 
-CORRELATION ANALYSIS
-{correlation_analysis}
+        CORRELATION ANALYSIS
+        {correlation_analysis}
 
-SIMILAR PAST INCIDENTS
-{similar_incidents}
-====================
+        SIMILAR PAST INCIDENTS
+        {similar_incidents}
+        ====================
 
-Instructions:
-- Identify the true root cause (not just symptoms)
-- Use similar incidents as supporting evidence when relevant
-- Be precise and technical
+        Instructions:
+        - Identify the true root cause (not just symptoms)
+        - Use similar incidents as supporting evidence when relevant
+        - Be precise and technical
+        - Assign a confidence score between 0 and 1
+        - Base confidence on:
+        * Strength of evidence
+        * Consistency between logs and stacktrace
+        * Similarity to past incidents
+        * Presence of ambiguity
+        - Be conservative: if uncertain, lower the score
+        
+        Confidence Guidelines:
 
-Return ONLY valid JSON (no explanation, no markdown, no schema):
+        HIGH (0.8-1.0):
+        - Clear exception + matching logs
+        - Strong match with past incidents
 
-{{  
-  "summary": "short high-level explanation",
-  "root_cause": "exact technical cause",
-  "evidence": ["log/stacktrace facts"],
-  "failure_chain": ["step-by-step failure sequence"],
-  "debugging_steps": ["actionable steps"]
-}}
-"""
+        MEDIUM (0.5-0.8):
+        - Partial match
+        - Some ambiguity
+
+        LOW (<0.5):
+        - Missing stacktrace or unclear cause
+        - Multiple competing explanations
+
+        Return ONLY valid JSON (no explanation, no markdown, no schema):
+
+        {{  
+            "summary": "...",
+            "root_cause": "...",
+            "evidence": [...],
+            "failure_chain": [...],
+            "debugging_steps": [...],
+            "confidence": 0.0,
+            "confidence_reasoning: "..."
+        }}
+        """
     )
 
     messages = prompt.format_messages(

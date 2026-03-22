@@ -12,6 +12,8 @@ from nodes.log_agent import log_analyzer
 from nodes.stacktrace_agent import stacktrace_analyzer
 from nodes.correlation_agent import correlation_analyzer
 from nodes.rootcause_agent import rootcause_analyzer
+from nodes.evaluation_agent import evaluate_confidence
+from nodes.refinement_agent import refine_analysis
 from nodes.memory_agent import memory_retriever
 
 def load_file(path):
@@ -43,6 +45,9 @@ graph.add_node("stacktrace_analyzer", stacktrace_analyzer)
 graph.add_node("correlation_analyzer", correlation_analyzer)
 graph.add_node("memory_retriever", memory_retriever)
 graph.add_node("rootcause_analyzer", rootcause_analyzer)
+graph.add_node("confidence_evaluator", evaluate_confidence)
+graph.add_node("analysis_refiner", refine_analysis)
+
 
 graph.add_edge(START, "parser")
 graph.add_edge("parser", "log_analyzer")
@@ -51,8 +56,16 @@ graph.add_edge("log_analyzer", "correlation_analyzer")
 graph.add_edge("stacktrace_analyzer", "correlation_analyzer")
 graph.add_edge("correlation_analyzer", "memory_retriever")
 graph.add_edge("memory_retriever", "rootcause_analyzer")
-graph.add_edge("rootcause_analyzer", END)
-
+graph.add_edge("rootcause_analyzer", "confidence_evaluator")
+graph.add_conditional_edges(
+    "confidence_evaluator",
+    lambda x: "retry" if x["retry"] else "end",
+    {
+        "retry": "analysis_refiner",
+        "end": END
+    }
+)
+graph.add_edge("analysis_refiner", "rootcause_analyzer")
 app = graph.compile()
 
 logs = load_file("logs.txt")

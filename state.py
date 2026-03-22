@@ -10,3 +10,4 @@ class IncidentState(TypedDict):
     correlation_analysis: str
     report: IncidentReport
     similar_incidents: List[str] = []
+    retry_count: int
