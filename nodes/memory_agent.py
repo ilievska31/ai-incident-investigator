@@ -10,13 +10,9 @@ def memory_retriever(state):
     {state.get("stacktrace_analysis", "")}
 
     Correlations:
-    {state.get("correlations", "")}
+    {state.get("correlation_analysis", "")}
     """
-
     results = search_similar(query)
 
-    state["similar_incidents"] = [
-        r.page_content for r in results
-    ]
-
+    state["similar_incidents"] = results
     return state
